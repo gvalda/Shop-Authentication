@@ -1,22 +1,19 @@
-class InvalidUserCredentials(Exception):
+class AuthenticationError(Exception):
+    """
+    Base class for authentication errors.
+    """
     pass
 
 
-class UserNotVerified(Exception):
+class RegistrationError(Exception):
+    """
+    Base class for registration errors.
+    """
     pass
 
 
-class UserDeleted(Exception):
-    pass
-
-
-class UserBanned(Exception):
-    pass
-
-
-class UserAlreadyExists(Exception):
-    pass
-
-
-class InvalidToken(Exception):
+class VerificationError(Exception):
+    """
+    Base class for verification errors.
+    """
     pass

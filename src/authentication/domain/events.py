@@ -10,24 +10,45 @@ class Event:
 class UserCreated(Event):
     id: uuid.uuid4
     username: str
+
+
+@dataclass
+class NeedEmailVerification(Event):
+    id: uuid.uuid4
     email: str
 
 
 @dataclass
-class UserEmailVerified(Event):
+class UserLoggedIn(Event):
     id: uuid.uuid4
 
 
 @dataclass
-class UserBanned(Event):
+class EmailVerificationNotificationMade(Event):
+    email: str
+    token: str
+
+
+@dataclass
+class UserVerified(Event):
     id: uuid.uuid4
 
 
 @dataclass
-class UserUnBanned(Event):
+class EmailVerified(Event):
     id: uuid.uuid4
 
 
 @dataclass
-class UserDeleted(Event):
+class UserDeactivated(Event):
+    id: uuid.uuid4
+
+
+@dataclass
+class UserActivated(Event):
+    id: uuid.uuid4
+
+
+@dataclass
+class RefreshTokenVerified(Event):
     id: uuid.uuid4

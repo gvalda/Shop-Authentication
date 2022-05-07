@@ -1,7 +1,11 @@
+import time
 from uuid import uuid4
-from typing import List
+from operator import itemgetter
+from typing import Callable, List
 
 from authentication.domain import events
+from authentication import exceptions as exc
+from authentication.enums import TokenTypes
 
 
 class BaseModel:
@@ -11,7 +15,6 @@ class BaseModel:
 class User(BaseModel):
     def __init__(
             self,
-            id: uuid4,
             username: str,
             password: str,
             email: str,
@@ -20,7 +23,7 @@ class User(BaseModel):
             is_banned: bool = False,
             is_deleted: bool = False,
     ):
-        self.id = id
+        self.id = uuid4()
         self.username = username
         self.password = password
         self.email = email
@@ -28,34 +31,45 @@ class User(BaseModel):
         self.is_verified = is_verified
         self.is_banned = is_banned
         self.is_deleted = is_deleted
-        self.events = []  # type: List[events.Event]
 
-        self.events.append(events.UserCreated(
-            id=self.id,
-            username=self.username,
-            email=self.email,
-        ))
+    # Login user. If user is not verified send verification email.
+    def login(self, password: str) -> None:
+        if self.password != password:
+            raise exc.AuthenticationError(f'Invalid user credentials')
 
-    def verify(self):
+        if self.is_banned:
+            raise exc.AuthenticationError(f'User is banned')
+
+        if self.is_deleted:
+            raise exc.AuthenticationError(f'User is deleted')
+
+        if not self.is_verified:
+            self.events.append(events.NeedEmailVerification(
+                id=self.id,
+                email=self.email,
+            ))
+            raise exc.AuthenticationError(f'User is not verified')
+
+    # Verifies user account, in case of repetitive verification raise VerificationError
+    def verify(self, token: str, decoder: Callable) -> None:
+        if self.is_verified:
+            raise exc.VerificationError(f'User is already verified')
+
+        exp, token_type = itemgetter('exp', 'token_type')(decoder(token))
+
+        if token_type != TokenTypes.VERIFICATION_EMAIL:
+            raise exc.VerificationError(f'Invalid token type')
+
+        if time.time() > exp:
+            raise exc.VerificationError(f'Token expired')
+
         self.is_verified = True
-        self.events.append(events.UserEmailVerified(
-            id=self.id,
-        ))
 
     def ban(self):
         self.is_banned = True
-        self.events.append(events.UserBanned(
-            id=self.id,
-        ))
 
     def unban(self):
         self.is_banned = False
-        self.events.append(events.UserUnBanned(
-            id=self.id,
-        ))
 
     def delete(self):
         self.is_deleted = True
-        self.events.append(events.UserDeleted(
-            id=self.id,
-        ))

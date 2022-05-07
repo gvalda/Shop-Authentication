@@ -1,12 +1,9 @@
 from flask import Flask, request, jsonify
 
 from authentication.exceptions import(
-    InvalidUserCredentials,
-    UserAlreadyExists,
-    UserNotVerified,
-    UserDeleted,
-    UserBanned,
-    InvalidToken,
+    RegistrationError,
+    AuthenticationError,
+    VerificationError,
 )
 from authentication.domain import commands, events
 from authentication.bootstrap import bootstrap
@@ -27,12 +24,12 @@ def register():
             request.json['email'],
         )
         bus.handle(cmd)
-    except UserAlreadyExists as e:
+    except RegistrationError as e:
         return {'message': str(e)}, HttpStatusCodes.BAD_REQUEST_400
     return 'Created', HttpStatusCodes.CREATED_201
 
 
-@app.route('/auth/login', methods=['POST'])
+@app.route('/auth/token', methods=['POST'])
 def login():
     try:
         cmd = commands.LoginUser(
@@ -41,27 +38,31 @@ def login():
         )
         results = bus.handle(cmd)
         tokens = results.pop(0)
-    except (
-        InvalidUserCredentials,
-        UserBanned,
-        UserDeleted,
-        UserNotVerified,
-    ) as e:
+    except AuthenticationError as e:
         return {'message': str(e)}, HttpStatusCodes.BAD_REQUEST_400
-
     return jsonify(tokens), HttpStatusCodes.OK_200
 
 
-@app.route('/auth/verify', methods=['GET'])
-def get_user_email_verification():
-    pass
-
-
-@app.route('/auth/verify/<token>', methods=['POST'])
-def verify_user_email(token):
+@app.route('/auth/token/refresh', methods=['POST'])
+def refresh():
     try:
-        cmd = commands.VerifyUserEmail(token)
+        cmd = commands.RefreshToken(
+            request.json['token'],
+        )
+        results = bus.handle(cmd)
+        tokens = results.pop(0)
+    except AuthenticationError as e:
+        return {'message': str(e)}, HttpStatusCodes.BAD_REQUEST_400
+    return jsonify(tokens), HttpStatusCodes.OK_200
+
+
+@app.route('/auth/email/verify', methods=['POST'])
+def verify():
+    try:
+        cmd = commands.VerifyUserEmail(
+            request.json['token'],
+        )
         bus.handle(cmd)
-    except InvalidToken as e:
+    except VerificationError as e:
         return {'message': str(e)}, HttpStatusCodes.BAD_REQUEST_400
     return 'Verified', HttpStatusCodes.OK_200

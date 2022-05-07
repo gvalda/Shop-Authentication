@@ -14,7 +14,6 @@ class AbstractPublication(abc.ABC):
         raise NotImplementedError
 
 
-# TODO add system variables
 DEFAULT_HOST = config.get_redis_host_and_port()["host"]
 DEFAULT_PORT = config.get_redis_host_and_port()["port"]
 

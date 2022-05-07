@@ -1,6 +1,3 @@
-from http.client import FORBIDDEN
-
-
 class HttpStatusCodes:
     OK_200 = 200
     CREATED_201 = 201
@@ -10,7 +7,13 @@ class HttpStatusCodes:
 
 
 class TokenTypes:
-    ACCESS_TOKEN = 'access_token'
-    REFRESH_TOKEN = 'refresh_token'
-    VERIFY_EMAIL = 'verify_email'
-    REPETITIVE_VERIFY_EMAIL = 'repetitive_verify_email'
+    LOGIN_ACCESS = 'access_token'
+    LOGIN_REFRESH = 'refresh_token'
+    VERIFICATION_EMAIL = 'verify_email'
+
+
+class PublishChannels:
+    USER_CREATED = 'user_created'
+    USER_VERIFIED = 'user_verified'
+    USER_DEACTIVATED = 'user_deactivated'
+    USER_ACTIVATED = 'user_activated'

@@ -1,5 +1,4 @@
 from __future__ import annotations
-import re
 from typing import (
     Callable,
     Dict,
@@ -34,10 +33,11 @@ class MessageBus:
         while self.queue:
             message = self.queue.pop(0)
             if isinstance(message, commands.Command):
-                cmd_result = self.handle_command(message)
-                results.append(cmd_result)
+                self.handle_command(message)
             elif isinstance(message, events.Event):
-                self.handle_event(message)
+                result = self.handle_event(message)
+                if result:
+                    results.append(result)
             else:
                 raise TypeError(f"Unknown message type: {type(message)}")
         return results
@@ -45,16 +45,18 @@ class MessageBus:
     def handle_command(self, command: commands.Command):
         try:
             handler = self.command_handlers[type(command)]
-            result = handler(command)
-            self.queue.extend(self.uow.collect_new_events())
-            return result
+            events = handler(command)
+            if events:
+                self.queue.extend(events)
         except Exception:
             raise
 
     def handle_event(self, event: events.Event):
         for handler in self.event_handlers[type(event)]:
             try:
-                handler(event)
-                self.queue.extend(self.uow.collect_new_events())
+                result, events = handler(event)
+                if events:
+                    self.queue.extend(events)
+                return result
             except Exception:
                 continue

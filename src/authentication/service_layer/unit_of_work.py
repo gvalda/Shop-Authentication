@@ -2,7 +2,7 @@ from __future__ import annotations
 import abc
 
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine
 
 from authentication.adapters import repository
 from authentication import config
@@ -17,16 +17,8 @@ class AbstractUnitOfWork(abc.ABC):
     def __exit__(self, *args):
         self.rollback()
 
-    def commit(self):
-        self._commit()
-
-    def collect_new_events(self):
-        for user in self.users.seen:
-            while user.events:
-                yield user.events.pop(0)
-
     @abc.abstractmethod
-    def _commit(self):
+    def commit(self):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -55,7 +47,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         super().__exit__(*args)
         self.session.close()
 
-    def _commit(self):
+    def commit(self):
         self.session.commit()
 
     def rollback(self):

@@ -4,9 +4,12 @@ import jwt
 
 from authentication import config
 
+DEFAULT_SECRET = config.get_jwt_config()['secret']
+DEFAULT_ALGORITHM = config.get_jwt_config()['algorithm']
+
 
 class AbstractCodec(abc.ABC):
-    def __init__(self, secret: str = config.get_jwt_secret(), algorithm: str = 'HS256'):
+    def __init__(self, secret: str = DEFAULT_SECRET, algorithm: str = DEFAULT_ALGORITHM):
         self.secret = secret
         self.algorithm = algorithm
 

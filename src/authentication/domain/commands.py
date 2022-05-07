@@ -20,6 +20,16 @@ class LoginUser(Command):
 
 
 @dataclass
+class RefreshTokens(Command):
+    refresh_token: str
+
+
+@dataclass
+class VerifyUserEmail(Command):
+    token: str
+
+
+@dataclass
 class UpdateUserPassword(Command):
     username: str
     password: str
@@ -29,16 +39,6 @@ class UpdateUserPassword(Command):
 class UpdateUserEmail(Command):
     username: str
     email: str
-
-
-@dataclass
-class SendUserVerificationEmail(Command):
-    username: str
-
-
-@dataclass
-class VerifyUserEmail(Command):
-    token: str
 
 
 @dataclass

@@ -1,8 +1,9 @@
 import inspect
+import logging
 
 from authentication.adapters.notifications import AbstractNotification, EmailNotification
 from authentication.adapters.publications import AbstractPublication, RedisPublication
-from authentication.adapters.token_codec import AbstractCodec, JwtCodec
+from authentication.adapters.codec import AbstractCodec, JwtCodec
 from authentication.service_layer import unit_of_work, messagebus, handlers
 from authentication.adapters import orm
 
@@ -16,8 +17,10 @@ def bootstrap(
 ) -> messagebus.MessageBus:
 
     if notifications is None:
-        # TODO - currently email notifications are not implemented, so instead, empty notification is used
-        notifications = EmailNotification()
+        try:
+            notifications = EmailNotification()
+        except Exception as e:
+            logging.error(f"Failed to initialize email notifications: {e}")
 
     if publish is None:
         publish = RedisPublication()
