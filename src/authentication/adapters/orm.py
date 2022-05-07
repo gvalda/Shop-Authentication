@@ -26,8 +26,3 @@ class User(Base):
 
 def start_mappers():
     mapper_registry.map_imperatively(model.User, User)
-
-
-@event.listens_for(model.User, 'load')
-def receive_load(user, _):
-    user.events = []
